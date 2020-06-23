@@ -65,12 +65,12 @@ exports.addwork = (req, res) => {
                 start_timezone: 'UTC',
                 end_at: date,
                 end_timezone: 'UTC',
-                description: 'これはテストです',
+                description: '',
             },
             relationships: {
                 label: {
                     data: {
-                        id: `${TIMETREE_CALENDAR_ID},１`,
+                        id: `${TIMETREE_CALENDAR_ID},6`, // ラベル（未提出:#e73b3b）
                         type: "label"
                     }
                 }
@@ -78,7 +78,6 @@ exports.addwork = (req, res) => {
         }
     };
     createEvent();
-    console.log(req.body);
     console.log(date);
     console.log(title);
 }
