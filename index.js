@@ -6,15 +6,61 @@
  * @param {!express:Response} res HTTP response context.
  */
 const axiosBase = require('axios');
+const Promise = require('promise');
+const Firestore = require('@google-cloud/firestore');
+
+// Firestoreの初期化
+const db = new Firestore();
+
 // 環境変数(.env.yaml)
 const TIMETREE_PERSONAL_TOKEN = process.env.timetreetoken; // パーソナルアクセストークン
 const TIMETREE_CALENDAR_ID = process.env.timetreeid; // calendarid
 
+const subjects = {
+    "化":"chemistry",
+    "デ":"digital",
+    "工":"experiment",
+    "現":"expression",
+    "歴":"history",
+    "国":"japanese",
+    "カ":"katsu",
+    "線":"math",
+    "物":"physics",
+    "プ":"programing",
+    "読":"reading",
+    "A":"track-a",
+    "B":"track-b"
+};
+
 // イベント作成関数
 const createEvent = (params) => {
-    timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
-    .then(response => console.log(response))
-};
+    return timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
+    .then(() => {
+        new Promise(function(resolve,reject){
+            if (response.status===200){
+                resolve(response.data.data.id)
+            }else{
+                reject('作成に失敗')
+            }
+        });
+    });
+}
+
+// DB保存関数
+const addDB = (title,id) => {
+    let initial = title.slice(0,1);
+    if (initial==="英" || initial==="回") {
+        let end = title.slice(-1)
+        initial = end
+    };
+    const subject = subjects[initial]
+    console.log(subject)
+    console.log(id)
+    let setID = db.collection('timetree-i-19s').doc('subject');
+    setID.update({[subject]: id}).then(() => {
+        console.log('Write succeeded!')
+    });
+}
 
 // limitを取得し適切な日付に変換(ISO8601)
 const dateMake = (limit) => {
@@ -78,7 +124,10 @@ exports.addwork = (req, res) => {
             }
         }
     };
-    createEvent(params);
+
+    createEvent(params)
+    .then(id=>addDB(title,id))
+    .catch(error=>console.log(error));
     console.log(date);
     console.log(title);
     res.end()
