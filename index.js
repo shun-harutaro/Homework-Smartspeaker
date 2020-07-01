@@ -6,8 +6,8 @@
  * @param {!express:Response} res HTTP response context.
  */
 const axiosBase = require('axios');
-const Promise = require('promise');
 const Firestore = require('@google-cloud/firestore');
+const Promise = require('promise');
 
 // Firestoreの初期化
 const db = new Firestore();
@@ -32,36 +32,6 @@ const subjects = {
     "B":"track-b"
 };
 
-// イベント作成関数
-const createEvent = (params) => {
-    return timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
-    .then(() => {
-        new Promise(function(resolve,reject){
-            if (response.status===200){
-                resolve(response.data.data.id)
-            }else{
-                reject('作成に失敗')
-            }
-        });
-    });
-}
-
-// DB保存関数
-const addDB = (title,id) => {
-    let initial = title.slice(0,1);
-    if (initial==="英" || initial==="回") {
-        let end = title.slice(-1)
-        initial = end
-    };
-    const subject = subjects[initial]
-    console.log(subject)
-    console.log(id)
-    let setID = db.collection('timetree-i-19s').doc('subject');
-    setID.update({[subject]: id}).then(() => {
-        console.log('Write succeeded!')
-    });
-}
-
 // limitを取得し適切な日付に変換(ISO8601)
 const dateMake = (limit) => {
     let dt = new Date(); //現在の時刻を取得(UTC)
@@ -79,7 +49,7 @@ const dateMake = (limit) => {
     return dt; // iso8601で返す
 }
 
-const timetree = axiosBase.create({
+var timetree = axiosBase.create({
     baseURL: 'https://timetreeapis.com/', // クライアント
     headers: {
       'Content-Type': 'application/json', // データ形式
@@ -97,20 +67,18 @@ exports.addwork = (req, res) => {
      */
     const title = req.body.title;
     const limit = req.body.limit;
-
-    const date = dateMake(limit);
-
+    const useparams = params;
     // POST /calendars/:calendar_id/events のときのパラメーター
     // https://developers.timetreeapp.com/ja/docs/api#post-calendarscalendar_idevents
-    const params = {
+    var params = {
         data: {
             attributes: {
                 category: 'schedule',
-                title: title,
+                title: null,
                 all_day: true,
-                start_at: date,
+                start_at: null,
                 start_timezone: 'UTC',
-                end_at: date,
+                end_at: null,
                 end_timezone: 'UTC',
                 description: '',
             },
@@ -125,10 +93,39 @@ exports.addwork = (req, res) => {
         }
     };
 
-    createEvent(params)
-    .then(id=>addDB(title,id))
-    .catch(error=>console.log(error));
-    console.log(date);
-    console.log(title);
-    res.end()
+    // イベント作成関数
+    const createEvent = (title,limit) => {
+        var dateresult = new Promise(function(resolve){
+            resolve(dateMake(limit))
+        })
+        dateresult.then((date) => {
+            params.data.attributes.title=title;
+            params.data.attributes.start_at=date;
+            params.data.attributes.end_at=date;
+        })
+        console.log(title,limit,params)
+        return timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
+            .then((response) => {
+                console.log(response)
+                // DB保存
+                let initial = title.slice(0,1);
+                if (initial==="英" || initial==="回") {
+                    let end = title.slice(-1)
+                    initial = end
+                };
+                const subject = subjects[initial]
+                const id = response.data.data.id
+                console.log(subject)
+                console.log(id)
+                let setID = db.collection('timetree-i-19s').doc('subject');
+                setID.update({[subject]: id})
+                .then(() => {
+                    console.log('Write succeeded!')
+                });
+            })
+            .catch(error=>{
+                console.log("イベントを作成できませんでした"+error)
+            });
+    };
+    createEvent(title,limit);
 }
