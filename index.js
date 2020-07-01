@@ -70,7 +70,7 @@ exports.addwork = (req, res) => {
     const useparams = params;
     // POST /calendars/:calendar_id/events のときのパラメーター
     // https://developers.timetreeapp.com/ja/docs/api#post-calendarscalendar_idevents
-    var params = {
+    let params = {
         data: {
             attributes: {
                 category: 'schedule',
@@ -102,10 +102,10 @@ exports.addwork = (req, res) => {
             params.data.attributes.title=title;
             params.data.attributes.start_at=date;
             params.data.attributes.end_at=date;
-        })
+        }).then(()=> {
         console.log(title,limit,params)
-        return timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
-            .then((response) => {
+        timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
+        }).then((response) => {
                 console.log(response)
                 // DB保存
                 let initial = title.slice(0,1);
