@@ -59,15 +59,6 @@ var timetree = axiosBase.create({
     responseType: 'json'
 });
 
-exports.addwork = (req, res) => {
-    /** 
-    *webhockから受け取ったJSONを分ける。
-    *@param {title} イベント名（課題名）
-    *@param {limit} 締め切り（day）
-     */
-    const title = req.body.title;
-    const limit = req.body.limit;
-    const useparams = params;
     // POST /calendars/:calendar_id/events のときのパラメーター
     // https://developers.timetreeapp.com/ja/docs/api#post-calendarscalendar_idevents
     let params = {
@@ -93,6 +84,15 @@ exports.addwork = (req, res) => {
         }
     };
 
+exports.addwork = (req, res) => {
+    /** 
+    *webhockから受け取ったJSONを分ける。
+    *@param {title} イベント名（課題名）
+    *@param {limit} 締め切り（day）
+     */
+    const title = req.body.title;
+    const limit = req.body.limit;
+
     // イベント作成関数
     const createEvent = (title,limit) => {
         var dateresult = new Promise(function(resolve){
@@ -104,7 +104,7 @@ exports.addwork = (req, res) => {
             params.data.attributes.end_at=date;
         }).then(()=> {
         console.log(title,limit,params)
-        timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
+        return timetree.post(`calendars/${TIMETREE_CALENDAR_ID}/events`, JSON.stringify(params))
         }).then((response) => {
                 console.log(response)
                 // DB保存
