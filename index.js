@@ -115,12 +115,20 @@ exports.addwork = (req, res) => {
                 };
                 const subject = subjects[initial]
                 const id = response.data.data.id
+                const date = params.data.attributes.start_at
                 console.log(subject)
+                console.log(date)
                 console.log(id)
-                let setID = db.collection('timetree-i-19s').doc('subject');
-                setID.update({[subject]: id})
+                let setData = db.collection('timetree-i-19s').doc(subject);
+                return setData.update({
+                    id: id,
+                    date: date
+                })
                 .then(() => {
                     console.log('Write succeeded!')
+                })
+                .catch((error) => {
+                    console.error("Error!",error)
                 });
             })
             .catch(error=>{
