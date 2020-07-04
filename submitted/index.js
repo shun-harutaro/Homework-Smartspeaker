@@ -7,7 +7,6 @@
  */
 const axiosBase = require('axios');
 const Firestore = require('@google-cloud/firestore');
-const Promise = require('promise');
 const { FieldPath } = require('@google-cloud/firestore');
 
 // Firestoreの初期化
@@ -17,6 +16,7 @@ const db = new Firestore();
 const TIMETREE_PERSONAL_TOKEN = process.env.timetreetoken; // パーソナルアクセストークン
 const TIMETREE_CALENDAR_ID = process.env.timetreeid; // calendarid
 
+// propatyname
 const subjects = {
     "化":"chemistry",
     "デ":"digital",
@@ -33,6 +33,7 @@ const subjects = {
     "B":"track-b"
 };
 
+// axiospropaty
 var timetree = axiosBase.create({
     baseURL: 'https://timetreeapis.com/', // クライアント
     headers: {
@@ -43,8 +44,7 @@ var timetree = axiosBase.create({
     responseType: 'json'
 });
 
-
-
+// make propaty name
 const indexMake = (name) => {
     let initial = name.slice(0,1);
     if (initial==="英" || initial==="回") {
@@ -54,11 +54,12 @@ const indexMake = (name) => {
     return subjects[initial];
 };
 
+// getFirestore
 const DB = (key) => {
     console.log(key)
     this.UseKey = key;
     const workRef = db.collection('timetree-i-19s').doc('subject');
-    workRef.get().then((doc) => {
+    return workRef.get().then((doc) => {
         if (!doc.exists) {
             console.log('No such document!');
         } else {
@@ -76,10 +77,11 @@ const DB = (key) => {
 
 const getTimeTree = (id) => {
     this.eventID = id;
-    timetree.get(`calendars/${TIMETREE_CALENDAR_ID}/events/${id}`)
+    return timetree.get(`calendars/${TIMETREE_CALENDAR_ID}/events/${id}`)
         .then(response => {
-            console.log(response.data)
-            return response.data.attributes.start_at
+            console.log(response)
+            console.log(response.data.data.attributes.start_at)
+            return response.data.data.attributes.start_at
         }).catch(error => console.log("イベントを取得できませんでした"+error))
 };
 
