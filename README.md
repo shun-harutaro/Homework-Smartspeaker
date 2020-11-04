@@ -1,9 +1,9 @@
-# GoogleHome - TimeTreeAPI
+# Homework-Smartspeaker
 ## about
-### GoogleHomeに話しかけて、TimeTreeに予定を追加できる。
+### スマートスピーカーに話しかけて、TimeTreeに予定を追加できる。
 ## Use Service
 - IFTTT
-    - GoogleAssistant
+    - GoogleAssistant or Alexa
     - Webhooks
 - GoogleCloudPlatform
     - Functions
